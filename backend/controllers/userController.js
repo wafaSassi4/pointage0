@@ -122,4 +122,4 @@ const generatePassword = (length) => {
   return password;
 };
 
-export { login, rhAccount, ForgetPassword };
+export { login, rhAccount, ForgetPassword};
