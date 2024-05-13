@@ -1,5 +1,5 @@
 import express from "express";
-import remoteController from "../controllers/remoteController.js";
+import * as remoteController from "../controllers/remoteController.js";
 
 const remoteRouter = express.Router();
 
