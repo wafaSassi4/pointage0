@@ -4,8 +4,8 @@ import moment from "moment";
 
 const submitRemoteJob = async (req, res) => {
   try {
-    const { nomPrenom, email, date } = req.body;
-    if (!nomPrenom || !email || !date) {
+    const { nomPrenom, email, dateDebut, dateFin } = req.body;
+    if (!nomPrenom || !email || !dateDebut|| !dateFin) {
       return res.status(404).json({ message: "Tous les champs sont requis !" });
     }
 
@@ -38,7 +38,8 @@ const submitRemoteJob = async (req, res) => {
     const remoteJob = new RemoteJob({
       nomPrenom,
       email,
-      date,
+      dateDebut,
+      dateFin,
     });
 
     await remoteJob.save();

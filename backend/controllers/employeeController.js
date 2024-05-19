@@ -2,28 +2,32 @@ import moment from "moment";
 import Employee from "../models/Employee.js";
 import User from "../models/user.js";
 
+
+
 const ERROR_USER_NOT_FOUND = "Utilisateur non trouvé.";
 const ERROR_SERVER = "Erreur du serveur.";
 const STATUS_USER_NOT_FOUND = 404;
 const STATUS_SERVER_ERROR = 500;
 const STATUS_CREATED = 201;
-// Fonction pour formater l'heure au format "hh:mm:ss"
-const formatTime = () => {
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-  return `${hours}:${minutes}:${seconds}`;
+
+
+const formatTime = () => moment().format("HH:mm:ss");
+const formatDate = () => moment().format("DD/MM/YYYY");
+
+// Fonction pour convertir un temps en format "hh:mm:ss" en secondes
+const timeStringToSeconds = (timeString) => {
+  const [hours, minutes, seconds] = timeString.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
 };
 
-// Fonction pour formater la date au format "jj/mm/aaaa"
-const formatDate = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${day}/${month}/${year}`;
+// Fonction pour convertir un nombre de secondes en format "hh:mm:ss"
+const secondsToTimeString = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
+
 
 export const createEmployee = async (req, res) => {
   const { email } = req.body;
@@ -40,7 +44,7 @@ export const createEmployee = async (req, res) => {
       entries: [
         {
           name: user.fullname,
-          entryTime: moment().format(),
+          entryTime: formatTime(),
           workMode: "",
         },
       ],
@@ -61,10 +65,7 @@ const formatTime1 = () => {
 };
 
 // Fonction pour formater la date au format "jj/mm/aaaa"
-const formatDate1 = () => {
-  const now = new Date();
-  return moment(now).format("DD/MM/YYYY");
-};
+const formatDate1 = () => moment().format("DD/MM/YYYY");
 
 // Endpoint pour créer une nouvelle entrée pour un employé
 export const createEntry = async (req, res) => {
@@ -74,17 +75,14 @@ export const createEntry = async (req, res) => {
     if (!entryTime || !workMode || !fullname) {
       return res.status(401).json({
         success: false,
-        error: "EntryTime , WorkMode and fullname are required",
+        error: "EntryTime, WorkMode, and Fullname are required",
       });
     }
 
-    // Obtention de la date actuelle au format "jj/mm/aaaa"
     const currentDate = formatDate1();
 
-    // Recherche de l'entrée existante pour la date actuelle
     let existingEntry = await Employee.findOne({ date: currentDate });
 
-    // Si aucune entrée existante, créez une nouvelle entrée
     if (!existingEntry) {
       existingEntry = await Employee.create({
         date: currentDate,
@@ -92,37 +90,27 @@ export const createEntry = async (req, res) => {
       });
     }
 
-    // Création d'une nouvelle entrée avec le travailMode, fullname et la date d'aujourd'hui
     const newEntry = {
       workMode,
-      fullname, // Utilize the fullname retrieved here
-      entryTime, // Using the current time when creating the entry
-      exitTime: "", // The exit time will be updated later
-      hoursWorked: "00:00:00", // Initialized to 0
+      fullname,
+      entryTime,
+      exitTime: "",
+      hoursWorked: "00:00:00",
     };
 
-    // Adding the new entry to the existing entry for the current date
     existingEntry.entries.push(newEntry);
 
-    // Saving the employee's modifications in the database
     const UpdatedEmployee = await existingEntry.save();
 
-    // Retrieving the ID of the newly added entry
-    const idEntry =
-      UpdatedEmployee.entries[UpdatedEmployee.entries.length - 1]._id;
+    const idEntry = UpdatedEmployee.entries[UpdatedEmployee.entries.length - 1]._id;
 
-    // Renvoyer une réponse avec les données de l'entrée créée
-    res
-      .status(STATUS_CREATED)
-      .json({ success: true, data: { ...newEntry, _id: idEntry } });
+    res.status(STATUS_CREATED).json({ success: true, data: { ...newEntry, _id: idEntry } });
   } catch (err) {
-    // Renvoyer une réponse d'erreur en cas de problème
     console.error("Erreur lors de la création de l'entrée :", err);
-    res
-      .status(STATUS_SERVER_ERROR)
-      .json({ success: false, error: ERROR_SERVER });
+    res.status(STATUS_SERVER_ERROR).json({ success: false, error: ERROR_SERVER });
   }
 };
+
 
 // Endpoint pour récupérer le fullname de l'utilisateur
 export const getFullname = async (req, res) => {
@@ -130,10 +118,7 @@ export const getFullname = async (req, res) => {
     const { fullname } = req.user;
     res.json({ fullname });
   } catch (error) {
-    console.error(
-      "Erreur lors de la récupération du fullname de l'utilisateur :",
-      error
-    );
+    console.error("Erreur lors de la récupération du fullname de l'utilisateur :", error);
     res.status(STATUS_SERVER_ERROR).json({ message: ERROR_SERVER });
   }
 };
@@ -143,7 +128,6 @@ export const updateExitTimeAndHoursWorked = async (req, res) => {
     const { id } = req.params;
     const { exitTime, hoursWorked } = req.body;
 
-    // Validate if exitTime and hoursWorked are provided
     if (exitTime === undefined || hoursWorked === undefined) {
       return res.status(400).json({
         success: false,
@@ -151,33 +135,38 @@ export const updateExitTimeAndHoursWorked = async (req, res) => {
       });
     }
 
-    // Update employee data in the database
+    const entry = await Employee.findOne(
+      { "entries._id": id });
+
+      // Convertir les temps en secondes
+    const lastTimeInSeconds = timeStringToSeconds(entry.entries[0].hoursWorked);
+    const entryHoursWorkedInSeconds = timeStringToSeconds(hoursWorked);
+    const totalHoursWorkedInSeconds = entryHoursWorkedInSeconds + lastTimeInSeconds;
+
+    // Convertir le total des secondes en format "hh:mm:ss"
+    const totalHoursWorked = secondsToTimeString(totalHoursWorkedInSeconds);
+
     const updatedEntry = await Employee.findOneAndUpdate(
       { "entries._id": id },
       {
         $set: {
           "entries.$.exitTime": exitTime,
-          "entries.$.hoursWorked": hoursWorked,
+          "entries.$.hoursWorked": totalHoursWorked,
         },
       },
-      { new: true } // To return the updated document
+      { new: true }
     );
 
-    // Check if the entry was updated successfully
     if (!updatedEntry) {
-      return res
-        .status(404)
-        .json({ success: false, error: "No entry found for the provided ID" });
+      return res.status(404).json({ success: false, error: "No entry found for the provided ID" });
     }
 
     res.status(200).json({ success: true, data: updatedEntry });
   } catch (err) {
     console.error("Error updating data:", err);
-    res
-      .status(500)
-      .json({ success: false, error: "Server error while updating data" });
+    res.status(500).json({ success: false, error: "Server error while updating data" });
   }
-};
+}
 export const getEmployeesPresentiel = async (req, res) => {
   try {
     // Obtenez la date actuelle au format "JJ/MM/AAAA"
@@ -213,6 +202,33 @@ export const getEmployeesPresentiel = async (req, res) => {
   }
 };
 
+export const getActiveEmployee = async (req, res) => {
+  const { fullname } = req.body;
+  try {
+    const currentDate = formatDate1();
+
+    if(!fullname){
+      res.status(404).json({ message: "fullname is required" });
+    }
+
+    const employee = await Employee.findOne({
+      date: currentDate,
+      "entries.fullname": fullname, // Rechercher le nom complet dans les entrées existantes
+    });
+    console.log("employee", employee)
+
+    if (!employee) {
+      console.log("employee not found")
+      return res.status(400).json({ message: "Employee not found" });
+    }
+    console.log("employee exist")
+    console.log(employee)
+    return res.status(200).json({ entry: employee.entries, message: "Employee exist" });
+  } catch (error) {
+    console.error("Error finding active employee:", error);
+    return res.status(500).json({ messsage: "Internal server error" });
+  }
+};
 
 
 export const getEmployeesRemote = async (req, res) => {
@@ -250,7 +266,6 @@ export const getEmployeesRemote = async (req, res) => {
   }
 };
 
-
 const getCurrentDate = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -264,7 +279,14 @@ export const getAllEmployees = async (req, res) => {
     const employees = await Employee.find();
     res.status(200).json(employees);
   } catch (error) {
-    console.error("Erreur lors de la récupération de tous les employés :", error);
-    res.status(500).json({ message: "Erreur serveur lors de la récupération de tous les employés" });
+    console.error(
+      "Erreur lors de la récupération de tous les employés :",
+      error
+    );
+    res
+      .status(500)
+      .json({
+        message: "Erreur serveur lors de la récupération de tous les employés",
+      });
   }
 };

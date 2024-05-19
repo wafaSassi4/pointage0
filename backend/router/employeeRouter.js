@@ -9,6 +9,7 @@ import {
   getEmployeesPresentiel,
   getEmployeesRemote,
   getAllEmployees,
+  getActiveEmployee,
 } from "../controllers/employeeController.js";
 import { authenticateUser } from "../middlewares/auth.js";
 
@@ -20,6 +21,8 @@ router.get("/presentiel", getEmployeesPresentiel);
 router.get("/remote", getEmployeesRemote);
 router.get("/getFullname", getFullname);
 router.get("/getAllEmployees", getAllEmployees); // Nouvelle route pour récupérer tous les employés
+router.post("/getActiveEmployee", getActiveEmployee); 
+
 
 // Exporter le routeur
 export default router;
