@@ -9,6 +9,7 @@ import userRouter from "./router/userRouter.js";
 import congeRouter from "./router/congeRouter.js";
 import remoteRouter from "./router/remoteRouter.js";
 import employeeRouter from "./router/employeeRouter.js";
+import rhRouter from "./router/rhRouter.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 app.get("/", (req, res) => {
   res.send("Welcome, In Our Server !");
 });
+app.use("/rh", rhRouter);
 app.use("/user", userRouter);
 app.use("/employees", employeeRouter);
 app.use("/conge", congeRouter);

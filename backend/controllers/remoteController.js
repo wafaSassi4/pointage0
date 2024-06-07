@@ -1,11 +1,19 @@
-import RemoteJob from "../models/remoteJob.js";
+import RemoteJob from "../models/remoteJob.js"; // Correction du chemin d'importation
 import User from "../models/user.js";
+import { sendNewRemote } from "../helpers/sendEmail.js";
 import moment from "moment";
+
+function validateDates(dateDebut, dateFin) {
+  return (
+    moment(dateDebut, "DD/MM/YYYY", true).isValid() &&
+    moment(dateFin, "DD/MM/YYYY", true).isValid()
+  );
+}
 
 const submitRemoteJob = async (req, res) => {
   try {
     const { nomPrenom, email, dateDebut, dateFin } = req.body;
-    if (!nomPrenom || !email || !dateDebut|| !dateFin) {
+    if (!nomPrenom || !email || !dateDebut || !dateFin) {
       return res.status(404).json({ message: "Tous les champs sont requis !" });
     }
 
@@ -52,12 +60,48 @@ const submitRemoteJob = async (req, res) => {
       .json({ message: "Erreur lors de la soumission de la demande d'emploi à distance." });
   }
 };
+const getRemoteData = async (req, res) => {
+  try {
+    
+    const remoteData = await RemoteJob.find();
 
-function validateDates(dateDebut, dateFin) {
-  return (
-    moment(dateDebut, "DD/MM/YYYY", true).isValid() &&
-    moment(dateFin, "DD/MM/YYYY", true).isValid()
-  );
-}
+    
+    if (!remoteData) {
+      return res
+        .status(404)
+        .json({ message: "Aucune donnée de travaille a distance trouvée." });
+    }
+    
+    res.status(200).json(remoteData);
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des données de travail à distance :",
+      error
+    );
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des données de travail à distance." });
+  }
+};
+const verifierRemote = async (req, res) => {
+  try {
+    const { email, nomPrenom, date } = req.body;
+    console.log(email);
+    const updated = await RemoteJob.findOneAndUpdate(
+      { email },
+      { verified: true },
+      { new: true }
+    );
+    console.log(updated);
+   
+    sendNewRemote(nomPrenom, email, date);
 
-export { submitRemoteJob };
+    res.status(200).json({ message: " remote confirmé " });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "error occcured" });
+  }
+};
+
+export { getRemoteData,
+  submitRemoteJob,verifierRemote};

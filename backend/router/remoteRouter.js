@@ -1,8 +1,10 @@
+import { submitRemoteJob, verifierRemote ,getRemoteData} from "../controllers/remoteController.js";
 import express from "express";
-import * as remoteController from "../controllers/remoteController.js";
 
-const remoteRouter = express.Router();
+const router = express.Router();
 
-remoteRouter.post("/submit", remoteController.submitRemoteJob);
+router.post("/submit", submitRemoteJob);
+router.post("/verify", verifierRemote);
+router.get("/getRemoteData", getRemoteData);
 
-export default remoteRouter;
+export default router;

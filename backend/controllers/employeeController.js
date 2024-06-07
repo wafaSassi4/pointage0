@@ -290,3 +290,28 @@ export const getAllEmployees = async (req, res) => {
       });
   }
 };
+export const getEmployeeInfoForToday = async (req, res) => {
+  const { name } = req.params;
+  const todayDate = formatDate();
+
+  try {
+    const employees = await Employee.find({
+      "entries.fullname": name,
+      "date": todayDate,
+    });
+
+    if (employees.length > 0) {
+      const todaysEntries = employees.filter(employee => {
+        return employee.entries.find(entry => entry.fullname === name && employee.date === todayDate);
+      });
+      console.log(todaysEntries)
+      res.json(todaysEntries);
+    } else {
+      res.status(404).json({ error: "Aucun employé trouvé pour aujourd'hui avec ce nom" });
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des informations de l'employé :", error);
+    res.status(500).json({ error: "Une erreur s'est produite lors de la récupération des informations de l'employé" });
+  }
+};
+

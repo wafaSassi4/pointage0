@@ -1,12 +1,14 @@
 import express from "express";
-import * as congeController from "../controllers/congeController.js";
+import { createConge, modifierConge ,getVacationData, employesConge,verifierConge,supprimerConge} from "../controllers/congeController.js"
 
 
 const congeRouter = express.Router();
+congeRouter.post("/demande-conge", createConge);
+congeRouter.put("/modifier_conge", modifierConge);
+congeRouter.post("/verifier_conge", verifierConge);
+congeRouter.delete("/supprimer-conge", supprimerConge);
 
-congeRouter.post("/demande-conge", congeController.createConge);
-congeRouter.put("/modifier-conge", congeController.modifierConge);
-congeRouter.delete("/supprimer-conge", congeController.supprimerConge);
-
+congeRouter.get("/getVacationData", getVacationData);
+congeRouter.get("/employesConge", employesConge);
 
 export default congeRouter;

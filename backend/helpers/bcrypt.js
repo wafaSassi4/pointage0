@@ -20,5 +20,16 @@ const InhashData = async (data, prev) => {
     throw new Error(`Error comparing data: ${error.message}`);
   }
 };
+const compareHash = async (data, hash) => {
+  // Renommer la fonction pour refléter son objectif
+  try {
+    const isMatch = await bcrypt.compare(data, hash);
 
-export { hashData, InhashData };
+    return isMatch;
+  } catch (error) {
+    throw new Error(
+      `Erreur lors de la comparaison des données : ${error.message}`
+    );
+  }
+};
+export { hashData, InhashData, compareHash  };
