@@ -1,9 +1,6 @@
-import {
-  sendAccountInfo,
-  sendPasswordReset,
-} from "../helpers/sendEmail.js";
+import { sendAccountInfo, sendPasswordReset } from "../helpers/sendEmail.js";
 import User from "../models/user.js";
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 import { hashData, InhashData } from "../helpers/bcrypt.js";
 import createToken from "../helpers/createToken.js";
 
@@ -21,7 +18,7 @@ const login = async (req, res) => {
       return res.status(404).json({ message: "Email incorrect" });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
+    const isPasswordMatch = await bcryptjs.compare(
       password,
       foundedUser.password
     );
@@ -31,14 +28,12 @@ const login = async (req, res) => {
 
     const token = createToken(foundedUser._id, foundedUser.fullname);
 
-    res
-      .status(200)
-      .json({
-        token,
-        _id: foundedUser._id,
-        email: foundedUser.email,
-        fullname: foundedUser.fullname,
-      });
+    res.status(200).json({
+      token,
+      _id: foundedUser._id,
+      email: foundedUser.email,
+      fullname: foundedUser.fullname,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -237,5 +232,12 @@ const getUserEmail = async (req, res) => {
   }
 };
 
-
-export { login, rhAccount, ForgetPassword,ajouterEmploye,modifierEmploye,supprimerEmploye,getUserEmail};
+export {
+  login,
+  rhAccount,
+  ForgetPassword,
+  ajouterEmploye,
+  modifierEmploye,
+  supprimerEmploye,
+  getUserEmail,
+};

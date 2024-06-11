@@ -1,7 +1,7 @@
 import Rh from "../models/rh.js";
-import { sendNewAccountInfo ,sendPasswordReset} from "../helpers/sendEmail.js";
+import { sendNewAccountInfo, sendPasswordReset } from "../helpers/sendEmail.js";
 import { InhashData, hashData, compareHash } from "../helpers/bcrypt.js";
-import bcrypt from "bcrypt"; // Import de bcrypt nécessaire pour utiliser compare
+import bcryptjs from "bcryptjs"; // Import de bcryptjs nécessaire pour utiliser compare
 import createToken from "../helpers/createToken.js";
 
 const login = async (req, res) => {
@@ -27,14 +27,12 @@ const login = async (req, res) => {
 
     const token = createToken(foundedRh._id, foundedRh.fullname);
 
-    res
-      .status(200)
-      .json({
-        token,
-        email: foundedRh.email,
-        fullname: foundedRh.fullname,
-        _id: foundedRh._id,
-      });
+    res.status(200).json({
+      token,
+      email: foundedRh.email,
+      fullname: foundedRh.fullname,
+      _id: foundedRh._id,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Erreur interne du serveur" });

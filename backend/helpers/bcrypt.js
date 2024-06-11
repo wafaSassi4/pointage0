@@ -1,9 +1,9 @@
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 
 const hashData = async (data) => {
   try {
-    const salt = await bcrypt.genSalt();
-    const hashedData = await bcrypt.hash(data, salt);
+    const salt = await bcryptjs.genSalt();
+    const hashedData = await bcryptjs.hash(data, salt);
 
     return hashedData;
   } catch (error) {
@@ -13,7 +13,7 @@ const hashData = async (data) => {
 
 const InhashData = async (data, prev) => {
   try {
-    const InhashedData = await bcrypt.compare(data,prev);
+    const InhashedData = await bcryptjs.compare(data, prev);
 
     return InhashedData;
   } catch (error) {
@@ -23,7 +23,7 @@ const InhashData = async (data, prev) => {
 const compareHash = async (data, hash) => {
   // Renommer la fonction pour refléter son objectif
   try {
-    const isMatch = await bcrypt.compare(data, hash);
+    const isMatch = await bcryptjs.compare(data, hash);
 
     return isMatch;
   } catch (error) {
@@ -32,4 +32,4 @@ const compareHash = async (data, hash) => {
     );
   }
 };
-export { hashData, InhashData, compareHash  };
+export { hashData, InhashData, compareHash };
