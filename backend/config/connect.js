@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const db_url = "mongodb://127.0.0.1:27017/addr_mdp";
+const db_url = "mongodb+srv://pointage:123AZEaze@cluster0.wxecxvd.mongodb.net/pointage";
 
 const Connect_DB = async () => {
   try {
